@@ -7,19 +7,31 @@ if (!API_KEY) {
 }
 
 const genAI = new GoogleGenerativeAI(API_KEY);
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+const model = genAI.getGenerativeModel({
+  model: 'gemini-flash-latest',
+  systemInstruction: 'You are a helpful and professional TechParts assistant. Keep your responses concise and well-structured. Use bullet points (•) or numbered lists for recommendations and comparisons. Avoid large tables or complex formatting that might break in a small window.'
+});
 
 export const generateChatResponse = async (
   messages: { text: string; isBot: boolean }[]
 ): Promise<string> => {
   try {
     const chat = model.startChat({
-      history: messages.map(msg => ({
-        role: msg.isBot ? 'model' : 'user',
-        parts: msg.text,
-      })),
+      history: messages
+        .slice(0, -1)
+        .filter(() => true)
+        // actually, let's fix the logic properly.
+        .reduce((acc, msg) => {
+          if (acc.length === 0 && msg.isBot) return acc;
+          acc.push(msg);
+          return acc;
+        }, [] as { text: string; isBot: boolean }[])
+        .map(msg => ({
+          role: msg.isBot ? 'model' : 'user',
+          parts: [{ text: msg.text }],
+        })),
       generationConfig: {
-        maxOutputTokens: 300,
+        maxOutputTokens: 1500,
         temperature: 0.7,
       },
     });
@@ -39,12 +51,5 @@ export const generateChatResponse = async (
  * Cleans and formats the AI response for better readability.
  */
 const formatResponse = (response: string): string => {
-  return response
-    .replace(/\n{2,}/g, '\n') // Remove excessive blank lines
-    .replace(/\n•/g, '\n\n-') // Convert bullet points properly with spacing
-    .replace(/\n\*/g, '\n\n-') // Handle alternative bullet styles
-    .replace(/\*\*\s?/g, '') // Remove misplaced bold markers
-    .replace(/-\s+/g, '- ') // Fix bullet spacing issues
-    .replace(/(\*)/g, '-\n\n*') // Ensure proper spacing before categories
-    .trim(); // Remove leading/trailing whitespace
+  return response.trim();
 };

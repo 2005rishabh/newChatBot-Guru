@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Loader2 } from 'lucide-react';
 import { generateChatResponse } from '../lib/gemini';
-
+import ReactMarkdown from 'react-markdown';
 export const ChatbotButton: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<{ text: string; isBot: boolean }[]>([
@@ -9,6 +9,15 @@ export const ChatbotButton: React.FC = () => {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -23,7 +32,7 @@ export const ChatbotButton: React.FC = () => {
         ...messages,
         { text: userMessage, isBot: false }
       ]);
-      
+
       setMessages(prev => [...prev, { text: botResponse, isBot: true }]);
     } catch (error) {
       setMessages(prev => [...prev, {
@@ -60,15 +69,15 @@ export const ChatbotButton: React.FC = () => {
             {messages.map((msg, i) => (
               <div
                 key={i}
-                className={`${
-                  msg.isBot
-                    ? 'bg-gray-100 rounded-br-lg'
-                    : 'bg-primary text-white ml-auto rounded-bl-lg'
-                } p-3 rounded-tl-lg rounded-tr-lg max-w-[80%] ${
-                  msg.isBot ? '' : 'ml-auto'
-                }`}
+                className={`${msg.isBot
+                  ? 'bg-gray-100 rounded-br-lg'
+                  : 'bg-primary text-white ml-auto rounded-bl-lg'
+                  } p-3 rounded-tl-lg rounded-tr-lg max-w-[80%] ${msg.isBot ? '' : 'ml-auto'
+                  }`}
               >
-                {msg.text}
+                <div className={`prose prose-sm max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-li:my-0.5 ${!msg.isBot ? 'prose-invert' : ''}`}>
+                  <ReactMarkdown>{msg.text}</ReactMarkdown>
+                </div>
               </div>
             ))}
             {isLoading && (
@@ -76,6 +85,7 @@ export const ChatbotButton: React.FC = () => {
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
 
           <div className="p-4 border-t">
@@ -92,9 +102,8 @@ export const ChatbotButton: React.FC = () => {
               <button
                 onClick={handleSend}
                 disabled={isLoading}
-                className={`bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-light transition-colors ${
-                  isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
+                className={`bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-light transition-colors ${isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
               >
                 Send
               </button>
