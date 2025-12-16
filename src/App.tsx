@@ -10,6 +10,8 @@ import { SignupPage } from './pages/SignupPage';
 import { AboutPage } from './pages/AboutPage';
 import { ContactPage } from './pages/ContactPage';
 import { ReturnPolicyPage } from './pages/ReturnPolicyPage';
+import { CheckoutPage } from './pages/CheckoutPage';
+import { SuccessPage } from './pages/SuccessPage';
 import { ChatbotButton } from './components/ChatbotButton';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
@@ -17,7 +19,7 @@ import { CartProvider } from './context/CartContext';
 // Protected Route wrapper component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
-  
+
   if (!user) {
     return <Navigate to="/login" replace />;
   }
@@ -35,7 +37,7 @@ function AppContent() {
         <Routes>
           <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" replace />} />
           <Route path="/signup" element={!user ? <SignupPage /> : <Navigate to="/" replace />} />
-          
+
           <Route path="/" element={
             <ProtectedRoute>
               <HomePage />
@@ -66,7 +68,17 @@ function AppContent() {
               <ReturnPolicyPage />
             </ProtectedRoute>
           } />
-          
+          <Route path="/checkout" element={
+            <ProtectedRoute>
+              <CheckoutPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/success" element={
+            <ProtectedRoute>
+              <SuccessPage />
+            </ProtectedRoute>
+          } />
+
           {/* Redirect any unknown routes to home */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

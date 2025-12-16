@@ -1,38 +1,18 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, ArrowLeft, ShoppingBag, Loader } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { initiateCheckout } from '../lib/stripe';
 
 export const CartPage: React.FC = () => {
+  const navigate = useNavigate();
   const { items, removeFromCart, updateQuantity, total, clearCart } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleCheckout = async () => {
-    let lineItems;
-    try {
-      setIsProcessing(true);
-      setError(null);
-  
-      lineItems = items.map(item => ({
-        name: item.product.name,
-        description: item.product.description || '',
-        image: item.product.imageUrl,
-        unit_amount: item.product.price * 100,
-        quantity: item.quantity,
-      }));
-  
-      await initiateCheckout(lineItems);
-    } catch (err) {
-      setError('Failed to initiate checkout. Please try again.');
-      console.error('Checkout error:', err);
-      console.error('Line items:', lineItems);
-    } finally {
-      setIsProcessing(false);
-    }
+  const handleCheckout = () => {
+    navigate('/checkout');
   };
-  
+
 
   if (items.length === 0) {
     return (
@@ -76,7 +56,7 @@ export const CartPage: React.FC = () => {
                   alt={item.product.name}
                   className="w-24 h-24 object-cover rounded-lg"
                 />
-                
+
                 <div className="flex-1 ml-6">
                   <Link
                     to={`/product/${item.product.id}`}
@@ -122,7 +102,7 @@ export const CartPage: React.FC = () => {
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Order Summary</h2>
-            
+
             <div className="space-y-4">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal</span>

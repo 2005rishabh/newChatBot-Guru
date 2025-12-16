@@ -19,6 +19,13 @@ app.post('/api/checkout', async (req, res) => {
 
     console.log('Received lineItems:', lineItems);
 
+    // 🛑 DEMO MODE: If using a placeholder key, simulate success
+    if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY.includes('placeholder')) {
+      console.log('⚠️ Using placeholder Stripe key. Simulating successful checkout.');
+      const origin = req.headers.origin || 'http://localhost:5173';
+      return res.json({ url: `${origin}/success?demo=true` });
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
